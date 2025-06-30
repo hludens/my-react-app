@@ -1,7 +1,7 @@
 {
-  "name": "my-react-app",
-  "private": true,
-  "version": "0.0.0",
+  "name": "muzey_interactive_panel",
+  "private": false,
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
