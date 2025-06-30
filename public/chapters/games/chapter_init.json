@@ -1,0 +1,21 @@
+{
+  "pages": [
+ {
+      "title": "Игры для детей",
+      "text": "Выберите игру и погрузитесь в увлекательный мир стеклоделия!",
+      
+      "games": [
+        {
+          "title": "Хрустальная головоломка",
+          "screenshot": "img/game_puzzle.jpg",
+          "url": "../games/puzzle/index.html"
+        },
+        {
+          "title": "Раскраска стекла",
+          "screenshot": "img/game_coloring.jpg",
+          "url": "../games/coloring/index.html"
+        }
+      ]
+    }
+  ]
+}
