@@ -14,8 +14,9 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 0;
-  background: linear-gradient(180deg,#fff,#f2f1fc,#cae3f9,#f1f4ff,#629ce8,#fdfcfc,#629ce8) repeat scroll 0 0 / 200% 200%;
+  z-index: -2;
+  
+  background: linear-gradient(180deg,#f2f1fc,#cae3f9,#f1f4ff,#1e528e,#85c4ff,#265889) repeat scroll 0 0 / 200% 200%;
   animation: gradientShift 15s ease infinite;
 }
 

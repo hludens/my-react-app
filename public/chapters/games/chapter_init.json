@@ -8,7 +8,7 @@
         {
           "title": "Хрустальная головоломка",
           "screenshot": "img/game_puzzle.jpg",
-          "url": "../games/puzzle/index.html"
+          "url": "chapters/games/puzzle/index.html"
         },
         {
           "title": "Раскраска стекла",

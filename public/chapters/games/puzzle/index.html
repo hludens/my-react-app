@@ -1,0 +1,319 @@
+
+ 
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memoriz</title>
+  <link rel="stylesheet" href="../../../css/app.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: #f0f0f0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header img {
+      width: 300px;
+    }
+    .menu, .game, .instructions, .win-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .menu {
+      display: flex;
+    }
+    .grid {
+      background-color: rgba(5, 55, 129, 0.89);
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+      margin: 20px;
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 8px;
+    }
+    .card-front {
+      transform: rotateY(180deg);
+      background-size: cover;
+    }
+    .card-back {
+      background-image: url('img/card.jpg');
+      background-size: cover;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+    }
+    #attempts {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 8;
+      pointer-events: none;
+    }
+    .win-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      justify-content: center;
+      display: none;
+      z-index: 10;
+      flex-direction: column;
+      align-items: center;
+    }
+    .win-screen h2 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    .win-screen p {
+      font-size: 24px;
+      margin-bottom: 30px;
+    }
+    .win-screen button {
+      padding: 15px 30px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+    <div class="background-effects"></div>
+  <header>
+    <img src="img/logo.jpg" alt="Logo">
+  </header>
+
+  <div class="instructions" id="instructions">
+    <h2>Инструкция</h2>
+    <p>Открывайте по две карточки, чтобы найти пары.<br>Если они не совпадают, они закроются снова.</p>
+    <button onclick="startGame()">Начать игру</button>
+  </div>
+
+  <div class="menu" id="menu">
+    <h2>Выберите уровень сложности</h2>
+    <button onclick="setupGrid(5,4)">Легкий (5x4)</button>
+    <button onclick="setupGrid(6,5)">Средний (6x5)</button>
+    <button onclick="setupGrid(6,6)">Сложный (6x6)</button>
+  </div>
+
+  <div class="game" id="game">
+    <div id="attempts">Попытки: 0</div>
+    <div id="grid" class="grid"></div>
+  </div>
+
+  <div class="win-screen" id="winScreen">
+    <h2>Вы выиграли!</h2>
+    <p id="winAttempts">Попыток: 0</p>
+    <button onclick="restartGame()">Начать заново</button>
+  </div>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <script type="text/javascript">
+    const menu = document.getElementById('menu');
+    const game = document.getElementById('game');
+    const instructions = document.getElementById('instructions');
+    const gridContainer = document.getElementById('grid');
+    const attemptsDisplay = document.getElementById('attempts');
+    const winScreen = document.getElementById('winScreen');
+    const winAttempts = document.getElementById('winAttempts');
+
+    let gridSize = { rows: 0, cols: 0 };
+    let cards = [];
+    let flippedCards = [];
+    let attempts = 0;
+    let lockBoard = false;
+
+   function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+    function startGame() {
+      instructions.style.display = 'none';
+      menu.style.display = 'flex';
+      game.style.display = 'none';
+    }
+
+    function setupGrid(rows, cols) {
+      if (rows * cols % 2 !== 0) {
+        alert("Должно быть четное количество карточек");
+        return;
+      }
+      gridSize = { rows, cols };
+      menu.style.display = 'none';
+      game.style.display = 'flex';
+      resetGame();
+    }
+
+    function resetGame() {
+      attempts = 0;
+      attemptsDisplay.textContent = `Попытки: ${attempts}`;
+      gridContainer.innerHTML = '';
+      cards = [];
+      flippedCards = [];
+      lockBoard = false;
+
+      const totalPairs = (gridSize.rows * gridSize.cols) / 2;
+      const images = Array.from({ length: totalPairs }, (_, i) => `img/${i + 1}.jpg`);
+      const cardImages =shuffle( [...images, ...images].sort(() => Math.random() - 0.5));
+
+      gridContainer.style.gridTemplateColumns = `repeat(${gridSize.cols}, 1fr)`;
+
+      cardImages.forEach((src, index) => {
+        const card = createCard(src, index);
+        gridContainer.appendChild(card);
+        cards.push(card);
+      });
+    }
+
+    function createCard(imageSrc, index) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.index = index.toString();
+      card.dataset.image = imageSrc;
+
+      const inner = document.createElement('div');
+      inner.className = 'card-inner';
+
+      const front = document.createElement('div');
+      front.className = 'card-front';
+      front.style.backgroundImage = `url('${imageSrc}')`;
+
+      const back = document.createElement('div');
+      back.className = 'card-back';
+
+      inner.appendChild(front);
+      inner.appendChild(back);
+      card.appendChild(inner);
+
+      card.addEventListener('click', () => flipCard(card));
+
+      return card;
+    }
+
+    function flipCard(card) {
+      if (lockBoard || card.classList.contains('flipped') || flippedCards.length === 2) return;
+
+      card.classList.add('flipped');
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        attempts++;
+        attemptsDisplay.textContent = `Попытки: ${attempts}`;
+        const [card1, card2] = flippedCards;
+
+        if (card1.dataset.image === card2.dataset.image) {
+          flippedCards = [];
+          checkWin();
+        } else {
+          lockBoard = true;
+          setTimeout(() => {
+            card1.classList.remove('flipped');
+            card2.classList.remove('flipped');
+            flippedCards = [];
+            lockBoard = false;
+          }, 1000);
+        }
+      }
+    }
+
+    function checkWin() {
+      const unflipped = cards.some(card => !card.classList.contains('flipped'));
+      if (!unflipped) {
+        winAttempts.textContent = `Попыток: ${attempts}`;
+        winScreen.style.display = 'flex';
+        launchConfetti();
+      }
+    }
+
+    function restartGame() {
+      winScreen.style.display = 'none';
+      resetGame();
+    }
+
+    // Fireworks effect
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+
+    function launchConfetti() {
+      for (let i = 0; i < 150; i++) {
+        particles.push({
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          radius: Math.random() * 5 + 2,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+          dx: (Math.random() - 0.5) * 10,
+          dy: (Math.random() - 0.5) * 10,
+          life: 1,
+        });
+      }
+      animateConfetti();
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p, i) => {
+        p.x += p.dx;
+        p.y += p.dy;
+        p.life -= 0.01;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        if (p.life <= 0) particles.splice(i, 1);
+      });
+
+      if (particles.length > 0) {
+        requestAnimationFrame(animateConfetti);
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>

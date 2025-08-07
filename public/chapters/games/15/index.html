@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Пятнашки</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            margin-top: 50px;
+        }
+        #puzzle {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(4, 100px);
+            gap: 2px;
+            position: relative;
+        }
+        .tile {
+            width: 100px;
+            height: 100px;
+            background-image: url('img/1.jpg');
+            background-size: 400px 400px;
+            cursor: pointer;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            transition: transform 0.3s ease;
+            position: absolute;
+        }
+        .empty {
+            background-color: #fff;
+            visibility: hidden;
+        }
+        #shuffleBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Пятнашки</h1>
+    <div id="puzzle"></div>
+    <button id="shuffleBtn">Перемешать</button>
+
+    <script>
+        const puzzle = document.getElementById('puzzle');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const gridSize = 4;
+        const tileSize = 100;
+        let tiles = [];
+        let emptyIndex = gridSize * gridSize - 1;
+
+        function createTiles() {
+            var rand=Math.floor(Math.random()*6)+1;
+            var fn="img/"+rand+".jpg";
+            
+            puzzle.innerHTML = '';
+            tiles = [];
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                tile.backgroundImage = `url('${fn}')`;
+                if (i === emptyIndex) {
+                    tile.classList.add('empty');
+                } else {
+                    const row = Math.floor(i / gridSize);
+                    const col = i % gridSize;
+                    tile.style.backgroundPosition = `-${col * tileSize}px -${row * tileSize}px`;
+                }
+                tile.dataset.index = i;
+                setPosition(tile, i);
+                puzzle.appendChild(tile);
+                tiles.push(tile);
+            }
+        }
+
+        function setPosition(element, index) {
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            element.style.top = `${row * tileSize}px`;
+            element.style.left = `${col * tileSize}px`;
+        }
+
+        function shuffleTiles() {
+            for (let i = 0; i < 200; i++) {
+                const moves = getValidMoves(emptyIndex);
+                const randomMove = moves[Math.floor(Math.random() * moves.length)];
+                swapTiles(emptyIndex, randomMove);
+                emptyIndex = randomMove;
+            }
+        }
+
+        function getValidMoves(index) {
+            const col = index % gridSize;
+            const row = Math.floor(index / gridSize);
+            const moves = [];
+
+            if (col > 0) moves.push(index - 1); // left
+            if (col < gridSize - 1) moves.push(index + 1); // right
+            if (row > 0) moves.push(index - gridSize); // up
+            if (row < gridSize - 1) moves.push(index + gridSize); // down
+
+            return moves;
+        }
+
+        function swapTiles(i, j) {
+            const tempIndex = tiles[i].dataset.index;
+            tiles[i].dataset.index = tiles[j].dataset.index;
+            tiles[j].dataset.index = tempIndex;
+
+            [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+
+            // Плавное перемещение
+            setPosition(tiles[i], i);
+            setPosition(tiles[j], j);
+        }
+
+        puzzle.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('tile')) return;
+            const clickedIndex = parseInt(e.target.dataset.index);
+            if (getValidMoves(emptyIndex).includes(clickedIndex)) {
+                swapTiles(emptyIndex, clickedIndex);
+                emptyIndex = clickedIndex;
+            }
+        });
+
+        shuffleBtn.addEventListener('click', () => {
+            puzzle.innerHTML = '';
+            createTiles();
+            shuffleTiles();
+        });
+
+        createTiles();
+        shuffleTiles();
+    </script>
+</body>
+</html>
