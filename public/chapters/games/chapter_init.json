@@ -6,14 +6,19 @@
       
       "games": [
         {
-          "title": "Хрустальная головоломка",
-          "screenshot": "img/game_puzzle.jpg",
+          "title": "Память",
+          "screenshot": "chapters/games/img/game_memory.jpg",
           "url": "chapters/games/puzzle/index.html"
         },
+         {
+          "title": "Вращение",
+          "screenshot": "chapters/games/img/spin.png",
+          "url": "chapters/games/rotate/index.html"
+        },
         {
-          "title": "Раскраска стекла",
-          "screenshot": "img/game_coloring.jpg",
-          "url": "../games/coloring/index.html"
+          "title": "Хрустальная головоломка",
+          "screenshot": "chapters/games/img/game_puzzle.jpg",
+          "url": "chapters/games/15/index.html"
         }
       ]
     }

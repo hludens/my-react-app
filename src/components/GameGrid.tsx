@@ -11,8 +11,6 @@ function GameGrid( {games}: GameGridProps) {
         <a
           key={idx}
           href={game.url}
-          target="_blank"
-          rel="noopener noreferrer"
           className="game-card"
         >
           <img src={game.screenshot} alt={game.title} />

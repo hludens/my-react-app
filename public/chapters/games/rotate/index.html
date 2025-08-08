@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../css/app.css" />
+    <title>Поворот фрагментов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .menu {
+            text-align: center;
+        }
+        .menu h1 {
+            color: #333;
+        }
+        .menu button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .menu button:hover {
+            background-color: #45a049;
+        }
+        .game-container {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .puzzle {
+            display: grid;
+            gap: 2px;
+            margin: 20px auto;
+            justify-content: center;
+        }
+        .piece {
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            transition: transform 0.2s;
+            overflow: hidden;
+        }
+        .win-message {
+            font-size: 24px;
+            color: green;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .reset-button {
+            font-size: 16px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .reset-button:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-effects"></div>
+  <header>
+    <a href="../../../index.html"><img src="img/logo.jpg" alt="Logo"></a>
+  </header>
+    <div class="menu" id="menu">
+        <p>Выберите уровень сложности:</p>
+        <button onclick="startGame(5)">5×5</button>
+        <button onclick="startGame(7)">7×7</button>
+        <button onclick="startGame(8)">8×8</button>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="puzzle" id="puzzle"></div>
+        <div class="win-message" id="winMessage">Поздравляем! Вы собрали картинку!</div>
+        <button class="reset-button" onclick="resetGame()">Начать заново</button>
+    </div>
+
+    <script>
+        const imageCount = 6;
+        const imageBasePath = 'img/';
+        let gridSize = 0;
+        let pieces = [];
+        let solved = false;
+        let imagePath = '';
+
+        function startGame(size) {
+            gridSize = size;
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            document.getElementById('winMessage').style.display = 'none';
+            solved = false;
+
+            const randomImageIndex = Math.floor(Math.random() * imageCount) + 1;
+            imagePath = `${imageBasePath}${randomImageIndex}.jpg`;
+
+            // Проверим, загружается ли изображение
+            const imgTest = new Image();
+            imgTest.onload = function() {
+                initPuzzle();
+            };
+            imgTest.onerror = function() {
+                // Заглушка на случай ошибки
+                imagePath = 'https://via.placeholder.com/400x400/ffffff/000000?text=Image+' + randomImageIndex;
+                initPuzzle();
+            };
+            imgTest.src = imagePath;
+        }
+
+        function initPuzzle() {
+            const puzzle = document.getElementById('puzzle');
+            puzzle.innerHTML = '';
+            const pieceSize =Math.floor(( window.innerHeight-200 )/ gridSize ); // px
+            puzzle.style.gridTemplateColumns = `repeat(${gridSize}, ${pieceSize}px)`;
+            puzzle.style.gridTemplateRows = `repeat(${gridSize}, ${pieceSize}px)`;
+
+            pieces = [];
+
+            // const pieceWidth = 100 / gridSize;
+            // const pieceHeight = 100 / gridSize;
+
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'piece';
+                    piece.style.width = `${pieceSize}px`;
+                    piece.style.height = `${pieceSize}px`;
+
+                    // Фоновое изображение
+                    piece.style.backgroundImage = `url('${imagePath}')`;
+                    piece.style.backgroundSize = `${gridSize * pieceSize}px ${gridSize * pieceSize}px`;
+                    piece.style.backgroundPosition = `-${col * pieceSize}px -${row * pieceSize}px`;
+                    piece.style.backgroundRepeat = 'no-repeat';
+
+                    // Случайный поворот
+                    const rotations = [0, 90, 180, 270];
+                    const randomRotation = rotations[Math.floor(Math.random() * rotations.length)];
+                    piece.style.transform = `rotate(${randomRotation}deg)`;
+                    piece.dataset.rotation = randomRotation;
+                    piece.dataset.row = row;
+                    piece.dataset.col = col;
+
+                    puzzle.appendChild(piece);
+                    piece.addEventListener('click', rotatePiece);
+
+                    pieces.push(piece);
+                }
+            }
+        }
+
+        function rotatePiece(event) {
+            if (solved) return;
+
+            const piece = event.target;
+            const currentRotation = parseInt(piece.dataset.rotation);
+            var newRotation = (currentRotation + 90);
+            piece.dataset.rotation = newRotation;
+            piece.style.transform = `rotate(${newRotation}deg)`;
+            checkWin();
+        }
+
+        function checkWin() {
+            const allAligned = pieces.every(piece => parseInt(piece.dataset.rotation)% 360 === 0);
+            if (allAligned && !solved) {
+                solved = true;
+                document.getElementById('winMessage').style.display = 'block';
+            }
+        }
+
+        function resetGame() {
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
